@@ -1,38 +1,44 @@
-<!DOCTYPE html>
-	 
 <html>
-
-	<head>
-	 <title>Login</title>
-	 <style type="text/css">
-		body {
-		color: #3c464f;
-		background-color: #8bbcea; }
-		.boton{
-        font-size:10px;    
-        font-weight:bold;
-        color:white;
-        background:#638cb5;
-        border:0px;
-        width:80px;
-        height:25px;
-       }
-	</style>
-	 <meta charset = "utf-8">
-	</head>
-	
-	<body>
+  <head>
+  
+    <meta name="tipo_contenido" content="text/html;" http-equiv="content-type" charset="utf-8">
+	<title>Preguntas</title>
+    <link rel='stylesheet' type='text/css' href='estilos/style.css' />
+	<link rel='stylesheet' 
+		   type='text/css' 
+		   media='only screen and (min-width: 530px) and (min-device-width: 481px)'
+		   href='estilos/wide.css' />
+	<link rel='stylesheet' 
+		   type='text/css' 
+		   media='only screen and (max-width: 480px)'
+		   href='estilos/smartphone.css' />
+  </head>
+  <body>
+  <div id='page-wrap'>
+	<header class='main' id='h1'>
+		<span class="right"><a href="formulario.html">Registrarse</a></span>
+      		<span class="right"><a href="login.php">Login</a></span>
+      		<span class="right" style="display:none;"><a href="/logout">Logout</a></span>
+		<h2>Quiz: el juego de las preguntas</h2>
+    </header>
+	<nav class='main' id='n1' role='navigation'>
+		<span><a href='layout.html'>Inicio</a></span>
+		<span><a href='VerPreguntas.php'>Preguntas</a></span>
+		<span><a href='creditos.html'>Creditos</a></span>
+	</nav>
+    <section class="main" id="s1">
+    
+	<div> <!--Aqui se despliega el formulario-->
 	
 	<center>
 	
 	<h1>Acceso para Usuarios</h1>
 	
-	<hr/>
-
+	
 	<form  id = "login" name "login" action="login.php" method="post" >
 
 	
-	<label>Nombre  de Usuario o Email :</label><br>
+	<label>Email :</label><br>
 	
 	<input name="username" type="text" id="username" required>
 	
@@ -50,6 +56,18 @@
 	</center>
 
 	</form>
+		
+	</div><!--Aqui termina e  formulario-->
+	
+    </section>
+	<footer class='main' id='f1'>
+		<p><a href="http://es.wikipedia.org/wiki/Quiz" target="_blank">Que es un Quiz?</a></p>
+		<a href='https://github.com'>Link GITHUB</a>
+	</footer>
+	
+</div>
+
+</body>
 
 </html>
 
@@ -65,11 +83,10 @@
 	$dbname = "usuario";
 	
 	
-	//En hostinger
 	/*$host = "mysql.hostinger.es";
-	$user = "";
-	$password = "";
-	$dbname = "";
+	$user = "u204349316_oscar";
+	$password = "gabriel3";
+	$dbname = "u204349316_preg";
 	*/
 	
 	$mysqli = mysqli_connect($host, $user, $password, $dbname);
@@ -84,19 +101,9 @@
 		
 		//comprobaciones en el lado servidor
 
-		if(empty($_POST['username'])){
+		if( empty($_POST['username']) || empty($_POST['pass']) ){
 		
 		die( '' );
-		
-		}if(empty($_POST['pass'])){
-			
-		die('Inserte una contraseña');
-	
-		}
-			
-		if(empty($_POST['username']) && empty($_POST['pass'])){
-			
-		die('Inserte una dirección de correo y una contraseña');
 		
 		}
 		
@@ -109,51 +116,24 @@
 		}
 		
 	
-		//parametros que tomamos del login
-	
-		//si no concuerda con la expresion regular es que el usuario intenta logearse con el nickname y no con el mail
+		if( !comprobarMail() ){
+			
+			die("Error de identificacion, revisa los datos que has introducido");
 		
-		$password = $_POST['pass'];
-	
-		if( !comprobarMail() ){ //FALTA IMPLEMENTAR BIEN, EL QUERY NO NOS EXTRAE BIEN EL CAMPO MAIL ASOCIADO AL NICK
-			
-			$nick = $_POST['username'];//si entramos aqui es que hemos logueado con el nick
-			
-			//$usuarios = mysqli_query($mysqli, "select Email from usuario WHERE Nickname  ='$nick' " );
-			
-			$query= mysqli_query( $mysqli, "SELECT Email FROM usuario WHERE Nickname  ='$nick' AND Clave = '$password'" ) ; //guardamos el mail asociado a ese nick 
-			
-			//CREO QUE $email TENDRIA EL BOOLEANO CORRESPONDIENTE A LA EJECUCION --> USAR METODO PARA EXTRAER EL MAIL ASOCIADO
-			
-			$email = mysqli_fetch_array($query); // aqui email es un array != string
-			
-			$flag = true;
-			
-		}if( comprobarMail() ){
-			
+		}	
 			$email =  $_POST['username'];
-			$query = mysqli_query($mysqli, "SELECT * FROM usuario WHERE Email  ='$email' AND Clave = '$password' ");
 			
-			$flag = false;
-		
-		}
-		
-		
-		
-		//hacer con asterisco y luego extraer el mail del row asociado !!!
-		
-		if( mysqli_num_rows($query) > 0){
+			$pass = $_POST['pass'];
 			
-			if( $flag ){ // en caso de que hayamos usado el fetch array 
-				
-				$_SESSION['user']= serialize($email); //convertir el array a string; ---> PROBLEMA: escribe basura, entre la cual esta el email asociado (vamos mejorando)
-				
-			}else{
-				
-				$_SESSION['user']=$email;
-			}
+			$result = mysqli_query($mysqli, "SELECT * FROM usuario WHERE Email = '$email' AND Clave = '$pass'" );
 			
-			$_SESSION['pass']=$password;
+			$cont = mysqli_num_rows($result);
+				
+		if(  $cont > 0 ){ //si hay una o mas lineas que coincidan --> esta en la BD --> acierto
+				
+				$_SESSION['user'] = $email;
+			
+				$_SESSION['pass'] = $password;
 			
 			header("location: InsertarPregunta.php");//redireccionamos
 			
@@ -172,7 +152,5 @@
 		}
 		
 		mysqli_close($mysqli);
-		
-		
 			
 ?>
