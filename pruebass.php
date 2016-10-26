@@ -35,41 +35,37 @@
 	<div>
 	<center>
 	
-	<?php
-
-
-	//conexion remota------->cambiarla!!!!!!!!!!
-
-	//$mysqli = mysqli_connect("mysql.hostinger.es"," 	u204349316_oscar","gabriel3", "u204349316_preg" ) or die(mysql_error());
+	session_start();
+			
+			$preguntas = simplexml_load_file("preguntas.xml");
+			
 	
-	//conexion local
+	?>
 	
-	$mysqli = mysqli_connect("localhost", "root","","preguntas") or die (mysql_error());
-
-		if (!$mysqli) {
-	 
-			echo "Fallo al conectar a MySQL: " . $mysqli->connect_error;
-
-		}
-
-	$preguntas = mysqli_query($mysqli, "select * from preguntas" ) or die( mysql_error() );
-
-		echo '<table border=1> <tr> 
-		<th> Email </th>
-		<th> Pregunta </th>
-		<th> Respuesta </th>
-		<th> Tema </th>
-		<th> Dificultad </th>
-		</tr>';
-		
-		while( $row = mysqli_fetch_array($preguntas) ){
-			echo '<tr>
-					  <td>'.$row['Email'].'</td>
-					  <td>'.$row['Pregunta'].'</td>
-					  <td>'.$row['Respuesta'].'</td>
-					  <td>'.$row['Tema'].'</td>
-					  <td>'.$row['Dificultad'].'</td>
-				 </tr>';
+	<table id = "tablapreguntas">
+	
+	<?php $cont_preguntas = count($preguntas);
+	
+		if($cont_preguntas != 0){
+		?>
+			<tr>
+				<th id="th0">Tema</td>
+				<th id="th1">Pregunta</td>
+				<th id="th2">Complejidad</td>
+			</tr>
+		<?php  
+			foreach($preguntas as $pregunta){	
+			?>
+				<tr>
+					<td id="td2"><?php echo utf8_decode("$pregunta[subject]"); ?></td>
+					<td id="td1"><?php echo $pregunta->itemBody->p; ?></td>
+					<td id="td2"><?php echo utf8_decode("$pregunta[complexity]"); ?></td>		
+				</tr>
+		<?php 
+			}
+		}else
+			echo "La tabla de preguntas se encuentra vacia";
+	?>
 			
 		}
 		echo '</table>';

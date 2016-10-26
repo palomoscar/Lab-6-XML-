@@ -88,6 +88,10 @@
 		</tr>
 		<td></td><td></td>
 		<tr>
+		<td>Tema : </td> <td> <input type="text" id = "tema" name="tema" required ></td>
+		</tr>
+		<td></td><td></td>
+		<tr>
 		<td>Elige un grado de dificultad : </td> <td> 
 		<select name="dificultad" id = "dificultad" size="1" required>
 							<option value="0">Seleccione dificultad</option>
@@ -160,9 +164,11 @@
 			
 		die('');
 	
-	}
+	}if(empty($_POST['tema'])){ //en el xml solo hay dos tips validos--> hacer criba PENDIENTEEEEE
 			
-	if(empty($_POST['dificultad']) || $_POST['dificultad'] == 0 ){
+		die('');
+	
+	}if(empty($_POST['dificultad']) || $_POST['dificultad'] == 0 ){
 		
 		echo "<center>";
 			
@@ -170,33 +176,73 @@
 		
 		echo "</center>";
 		
+	}if( empty($_SESSION['user'])){
+				
+		die("Por favor inicie sesion para poder insertar preguntas");
+				
 	}
 	
-			if( empty($_SESSION['user'])){
-				
-				die("Por favor inicie sesion para poder insertar preguntas");
-				
-			}
-			
 			$pregunta = $_POST['pregunta'];
 			$respuesta = $_POST['respuesta'];
+			$tema = $_POST['tema'];
 			$dificultad = $_POST['dificultad'];
 	
-			$sql = "INSERT INTO preguntas(Email, Pregunta, Respuesta, Dificultad) VALUES('$email','$pregunta','$respuesta',$dificultad)";
+			$sql = "INSERT INTO preguntas(Email, Pregunta, Respuesta, Dificultad, Tema) VALUES('$email','$pregunta','$respuesta',$dificultad,'$tema')";//ADAPTAR PARA INGRESAR EL TEMA
 			
 			$res = mysqli_query($mysqli ,$sql);
-	
-			echo "<center>";
-			echo "¡Pregunta agregada con exito!";
-			echo "<br><br>";
-			echo "<p> <a href='VerPreguntas.php'> VER TODAS LAS PREGUNTAS </a>";
-			echo "</center>";
 			
-	
-	
+			if(!$res){//en caso de que falle la insercion
+				
+				$inserteMessage = "Error al insertar la pregunta en la BD";
+				echo "<div id='tmessageError'>".$inserteMessage."</div>";
+				
+			}else{
+							//METER LA PARTE DE XML-->RESPETAR FORMATO QUE NOS DAN EN CLASE!!
+							
+
+			$xml = simplexml_load_file("preguntas.xml");
+			
+			$newAssessmentItem = $xml->addChild("assessmentItem");	
+			
+			$newAssessmentItem->addAttribute("complexity",$dificultad);	
+			
+			$newAssessmentItem->addAttribute("subject",$tema);
 		
+			$itemBody = $newAssessmentItem->addChild("itemBody");
+			
+			$itemBody->addChild("p",$pregunta);
+			
+			$correctResponse = $newAssessmentItem->addChild("correctResponse");
+			
+			$correctResponse->addChild("value",$respuesta);
+					
+			$insertado = $xml->asXML('preguntas.xml');
+			
+			if($insertado == true){
+				
+				echo "<center>";
+				
+				echo "¡Pregunta agregada con exito!";
 		
 
-
+		
+				echo "<br><br>";
+				
+				echo "<p> <a href='VerPreguntas.php'> VER TODAS LAS PREGUNTAS </a>";
+				
+				echo "</center>";
+				
+			}else{
+					
+				$inserteMessage = "Error al insertar la pregunta en el fichero XML";
+				
+				echo "<div id='tmessageError'>".$inserteMessage."</div>";
+				
+			}
+		
+						
+			}//cierra la parte de insertar en xml
+			
+			$mysqli->close();
 
 ?>
